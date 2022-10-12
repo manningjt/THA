@@ -15,7 +15,7 @@ public class Fare_estimator {
         String lat, lng, lat_line2, lng_line2, id_ride, timestamp, timestamp_line2;
         String result = "0";
         double U;
-        int i = 1, SIZE_LIST = 2000;
+        int i = 0, SIZE_LIST = 2000;
         double[] fare = new double[SIZE_LIST];
         double[] id_ride_final = new double[SIZE_LIST];
         Fare_estimator calculate = new Fare_estimator();
