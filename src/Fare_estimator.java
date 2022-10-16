@@ -138,7 +138,6 @@ public class Fare_estimator {
         id_ride_final1[i] = new_id_ride;
         fare1[i] = fare_amount;
 
-        long epoch = System.currentTimeMillis()/1000;
         Timestamp ts = new Timestamp((new_timestamp));
         Timestamp date = ts;
         Date timeD = new Date(ts.getTime());
