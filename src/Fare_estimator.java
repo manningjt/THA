@@ -110,11 +110,13 @@ public class Fare_estimator {
 
         delta_latitude = Math.toRadians(new_lat_line2 - new_lat);
         delta_longitude = Math.toRadians(new_lng_line2 - new_lng);
+        new_lat = Math.toRadians(new_lat);
+        new_lat_line2 = Math.toRadians(new_lat_line2);
         delta_time = (new_timestamp_line2 - new_timestamp);
-        a = Math.pow(Math.sin(delta_latitude / 2), 2) +
+        a = Math.sin(delta_latitude / 2) * Math.sin(delta_latitude / 2)+
                 Math.cos(new_lat) * Math.cos(new_lat_line2) *
-                        Math.pow(Math.sin(delta_longitude / 2), 2);
-        c = 2 * Math.atan2(((Math.sqrt(a))), (Math.sqrt(1 - a)));
+                        Math.sin(delta_longitude / 2) * Math.sin(delta_longitude / 2);
+        c = 2 * Math.asin((Math.sqrt(a)));
         distance = (EARTH_RADIUS * c);
         U = (distance / delta_time) ;
         calculate.fare_rules(distance, U, delta_time, new_id_ride, new_timestamp, fare0, id_ride_final0, i);
@@ -123,31 +125,35 @@ public class Fare_estimator {
     }
 
     public void fare_rules(double distance, double U, double delta_time, float new_id_ride, int new_timestamp, double fare1[], double id_ride_final1[], int i) {
+
         int SECONDS_IN_AN_HOUR = 3600;
         double fare_amount = 0.0;
+
         // when the speed is less than 10KM
         if (U <= 10) {
             fare_amount = 11.90 * ((delta_time/SECONDS_IN_AN_HOUR));
             if (fare_amount < 0.0) {
                 fare_amount = 0.0;
             }
-        }   //filtering what  seems an erroneous calculation
+        }
+        //filtering what  seems an erroneous calculation
         if (fare_amount > 1000.0) {
             fare_amount = 0.0;
         }
         id_ride_final1[i] = new_id_ride;
         fare1[i] = fare_amount;
 
-        Timestamp ts = new Timestamp((new_timestamp));
-        Timestamp date = ts;
-        Date timeD = new Date(ts.getTime());
+        long time = Long.parseLong(String.valueOf(new_timestamp));
+        //convert time seconds to microseconds
+        Date date_and_hour = new Date( time * 1000 );
         SimpleDateFormat sdf = new SimpleDateFormat("HHmmss");
-        String Time = sdf.format(timeD);
-        String time1 = new String("000000");
-        String time2 = new String("050000");
-        String time3 = new String("235959");
+        String Hour = sdf.format(date_and_hour);
+        String hour1 = new String("000000");
+        String hour2 = new String("050000");
+        String hour3 = new String("235959");
+
         // when the speed is bigger than 10KM and the movement of the vehicle is between 00 hour and 5 AM
-        if (U > 10 && Time.compareTo(time1) > 0 && Time.compareTo(time2) < 0) {
+        if (U > 10 && Hour.compareTo(hour1) > 0 && Hour.compareTo(hour2) < 0) {
 
             fare_amount = (1.30 * distance);
             //filtering what  seems an erroneous calculation
@@ -156,10 +162,9 @@ public class Fare_estimator {
             }
             id_ride_final1[i] = new_id_ride;
             fare1[i] = fare_amount;
-            // test_rules (new_id_ride,fare_amount,delta_time,i, U);
         }
         // when the speed is bigger than 10KM and the movement of the vehicle is between 5AM  and 00 hour
-        if (U > 10 && Time.compareTo(time2) > 0 && Time.compareTo(time3) < 0) {
+        if (U > 10 && Hour.compareTo(hour2) > 0 && Hour.compareTo(hour3) < 0) {
 
             fare_amount = (0.74 * distance);
             //filtering what  seems an erroneous calculation
@@ -168,12 +173,8 @@ public class Fare_estimator {
             }
             id_ride_final1[i] = new_id_ride;
             fare1[i] = fare_amount;
-            // test_rules(new_id_ride,fare_amount,delta_time,i, U);
         }
-
     }
-
-
     public String prepare_result (double[] fare2, double[] id_ride_final2, int i) {
 
         int j, n = 0;
