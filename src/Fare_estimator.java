@@ -4,20 +4,21 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.sql.Timestamp;
-//import java.util.Date;
+
 
 public class Fare_estimator {
 
     public static void main(String[] args) {
 
-        String lat, lng, lat_line2, lng_line2, id_ride, timestamp, timestamp_line2;
+        String lat, lng, lat_line2, lng_line2, id_ride, timestamp, timestamp_line2,id_ride2;
         String result;
-        double U;
+        double U,distance;
         int i = 0, SIZE_LIST = 2000, cont;
         double[] fare = new double[SIZE_LIST];
         double[] id_ride_final = new double[SIZE_LIST];
         Fare_estimator calculate = new Fare_estimator();
         BufferedReader buffer_read = null;
+
         try {
             // Open .csv in Buffered Reader
             buffer_read = new BufferedReader(new FileReader("/Users/a.manning/Downloads/paths 3.csv"));
@@ -37,22 +38,47 @@ public class Fare_estimator {
                 }
 
                 String[] fields_line2 = line.split(",");
+                id_ride2 = fields_line2[0];
                 lat_line2 = fields_line2[1];
                 lng_line2 = fields_line2[2];
                 timestamp_line2 = fields_line2[3];
-                U = calculate.calculate_speed(lat, lng, lat_line2, lng_line2, id_ride, timestamp, timestamp_line2, fare, id_ride_final, i);
-                //if the speed is bigger than 100KM/h
-                while (U > 100) {
-                    line = buffer_read.readLine();
-                    String[] fields_line3 = line.split(",");
-                    lat_line2 = fields_line3[1];
-                    lng_line2 = fields_line3[2];
-                    timestamp_line2 = fields_line3[3];
-                    U = calculate.calculate_speed(lat, lng, lat_line2, lng_line2, id_ride, timestamp, timestamp_line2, fare, id_ride_final, i);
+                float new_id_ride = Float.parseFloat(id_ride);
+                float new_id_ride2 = Float.parseFloat(id_ride2);
+                double new_lat = Double.parseDouble(lat);
+                double new_lat_line2 = Double.parseDouble(lat_line2);
+                double new_lng = Double.parseDouble(lng);
+                double new_lng_line2 = Double.parseDouble(lng_line2);
+                int new_timestamp = Integer.parseInt(timestamp);
+                int new_timestamp_line2 = Integer.parseInt(timestamp_line2);
+                double delta_time_seconds = (new_timestamp_line2 - new_timestamp);
+                double delta_time_hours = delta_time_seconds / 3600;
 
-                }
-                i++;
+                distance = calculate.calculate_speed(new_lat, new_lng, new_lat_line2, new_lng_line2);
+                U = (distance / delta_time_hours);
+
+            //if the speed is bigger than 100KM/h
+            while (U > 100) {
+                line = buffer_read.readLine();
+                String[] fields_line4 = line.split(",");
+                id_ride2 = fields_line4[0];
+                lat_line2 = fields_line4[1];
+                lng_line2 = fields_line4[2];
+                timestamp_line2 = fields_line4[3];
+                new_lat_line2 = Double.parseDouble(lat_line2);
+                new_lng = Double.parseDouble(lng);
+                new_lng_line2 = Double.parseDouble(lng_line2);
+                new_timestamp_line2 = Integer.parseInt(timestamp_line2);
+                delta_time_seconds = (new_timestamp_line2 - new_timestamp);
+                delta_time_hours = delta_time_seconds / 3600;
+                distance = calculate.calculate_speed(new_lat, new_lng, new_lat_line2, new_lng_line2);
+                U = (distance / delta_time_hours);
             }
+
+            calculate.fare_rules(distance, U, delta_time_hours, new_id_ride, new_timestamp, fare, id_ride_final, i);
+            i++;
+
+            }
+
         } catch (IOException e) {
             e.printStackTrace();
         } finally {
@@ -87,61 +113,40 @@ public class Fare_estimator {
         }
     }
 
-    public double calculate_speed(String lat,
-                                  String lng,
-                                  String lat_line2,
-                                  String lng_line2,
-                                  String id_ride,
-                                  String timestamp,
-                                  String timestamp_line2,
-                                  double fare0[], double id_ride_final0[], int i) {
-        double a, c, distance, U, delta_latitude, delta_longitude, delta_time;
+    public double calculate_speed(double new_lat, double new_lng, double new_lat_line2, double new_lng_line2) {
+        double a, c, distance, delta_latitude, delta_longitude;
         int EARTH_RADIUS = 6371;
 
-        Fare_estimator calculate = new Fare_estimator();
-
-        float new_id_ride = Float.parseFloat(id_ride);
-        double new_lat = Double.parseDouble(lat);
-        double new_lat_line2 = Double.parseDouble(lat_line2);
-        double new_lng = Double.parseDouble(lng);
-        double new_lng_line2 = Double.parseDouble(lng_line2);
-        int new_timestamp = Integer.parseInt(timestamp);
-        int new_timestamp_line2 = Integer.parseInt(timestamp_line2);
 
         delta_latitude = Math.toRadians(new_lat_line2 - new_lat);
         delta_longitude = Math.toRadians(new_lng_line2 - new_lng);
         new_lat = Math.toRadians(new_lat);
         new_lat_line2 = Math.toRadians(new_lat_line2);
-        delta_time = (new_timestamp_line2 - new_timestamp);
+
         a = Math.sin(delta_latitude / 2) * Math.sin(delta_latitude / 2)+
                 Math.cos(new_lat) * Math.cos(new_lat_line2) *
                         Math.sin(delta_longitude / 2) * Math.sin(delta_longitude / 2);
         c = 2 * Math.asin((Math.sqrt(a)));
         distance = (EARTH_RADIUS * c);
-        U = (distance / delta_time) ;
-        calculate.fare_rules(distance, U, delta_time, new_id_ride, new_timestamp, fare0, id_ride_final0, i);
 
-        return U;
+        return distance;
     }
 
-    public void fare_rules(double distance, double U, double delta_time, float new_id_ride, int new_timestamp, double fare1[], double id_ride_final1[], int i) {
+    public void fare_rules(double distance, double U, double delta_time_hours, float new_id_ride, int new_timestamp, double fare1[], double id_ride_final1[], int i) {
 
-        int SECONDS_IN_AN_HOUR = 3600;
         double fare_amount = 0.0;
-
         // when the speed is less than 10KM
         if (U <= 10) {
-            fare_amount = 11.90 * ((delta_time/SECONDS_IN_AN_HOUR));
+            fare_amount = 11.90 * delta_time_hours;
             if (fare_amount < 0.0) {
                 fare_amount = 0.0;
             }
+            if (fare_amount > 1000.0) {
+                fare_amount = 0.0;
+            }
+            id_ride_final1[i] = new_id_ride;
+            fare1[i] = fare_amount;
         }
-        //filtering what  seems an erroneous calculation
-        if (fare_amount > 1000.0) {
-            fare_amount = 0.0;
-        }
-        id_ride_final1[i] = new_id_ride;
-        fare1[i] = fare_amount;
 
         long time = Long.parseLong(String.valueOf(new_timestamp));
         //convert time seconds to microseconds
@@ -155,44 +160,36 @@ public class Fare_estimator {
         // when the speed is bigger than 10KM and the movement of the vehicle is between 00 hour and 5 AM
         if (U > 10 && Hour.compareTo(hour1) > 0 && Hour.compareTo(hour2) < 0) {
 
-            fare_amount = (1.30 * distance);
-            //filtering what  seems an erroneous calculation
-            if (fare_amount > 1000.0) {
-                fare_amount = 0.0;
-            }
+            fare_amount = (1.30 * distance) ;
             id_ride_final1[i] = new_id_ride;
             fare1[i] = fare_amount;
         }
         // when the speed is bigger than 10KM and the movement of the vehicle is between 5AM  and 00 hour
         if (U > 10 && Hour.compareTo(hour2) > 0 && Hour.compareTo(hour3) < 0) {
 
-            fare_amount = (0.74 * distance);
-            //filtering what  seems an erroneous calculation
-            if (fare_amount > 1000.0) {
-                fare_amount = 0.0;
-            }
+            fare_amount = (0.74 * distance) ;
             id_ride_final1[i] = new_id_ride;
             fare1[i] = fare_amount;
         }
     }
     public String prepare_result (double[] fare2, double[] id_ride_final2, int i) {
 
-        int j, n = 0;
-        double fare_estimate = 0, cont = 1.0;
+        int  n = 0, m=0;
+        double fare_estimate = 0, cont =1.0;
         String result = "0";
         double[] x = new double[9];
         double[] y = new double[9];
         System.out.println("id_ride | fare_estimate");
         while (cont <= id_ride_final2[i - 1]) {
 
-            for (j = 0; j < i; j++) {
-
-                while (id_ride_final2[j] == cont) {
-                    fare_estimate = fare_estimate + fare2[j];
-                    j++;
-                }
+            fare_estimate = 0;
+            while (id_ride_final2[m] == cont) {
+                    fare_estimate = fare_estimate + fare2[m];
+                    m++;
             }
+
             fare_estimate = (fare_estimate + 1.30);
+
             if (fare_estimate < 3.47) {
                 fare_estimate = 3.47;
             }
