@@ -1,39 +1,33 @@
-import java.lang.reflect.Array;
 import java.sql.Date;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class Segment extends Point {
 
-    private  String lat_destination , lng_destination , id_ride_destination, timestamp_destination;
     private double U, distance, delta_time_hours;
-    private  int new_timestamp = Integer.parseInt(timestamp);
-    private  float new_id_ride = Float.parseFloat(id_ride);
-    private  double new_lng = Double.parseDouble(lng);
-    private double new_lat = Double.parseDouble(lat);
+    private  int new_timestamp = Integer.parseInt(timestampOrigin);
+    private  float new_id_ride = Float.parseFloat(id_rideOrigin);
+    private  double new_lng = Double.parseDouble(lngOrigin);
+    private double new_lat = Double.parseDouble(latOrigin);
 
-    public Segment(String lat,
-                   String lng,
-                   String id_ride,
-                   String timestamp,
-                   String lat_destination,
-                   String lng_destination,
-                   String id_ride_destination,
-                   String timestamp_destination) {
-        super(lat, lng, id_ride, timestamp);
+    public Segment(String latOrigin,
+                   String lngOrigin,
+                   String id_rideOrigin,
+                   String timestampOrigin,
+                   String latDestination,
+                   String lngDestination,
+                   String id_rideDestination,
+                   String timestampDestination)
+    {
+        super(latOrigin, lngOrigin, id_rideOrigin, timestampOrigin,latDestination,lngDestination,id_rideDestination,timestampDestination);
 
-        this.lat_destination = lat_destination;
-        this.lng_destination = lng_destination;
-        this.id_ride_destination = id_ride_destination;
-        this.timestamp_destination = timestamp_destination;
 
     }
-
     public double calculate_speed() {
 
-        double new_lng_line2 = Double.parseDouble(lng_destination);
-        double new_lat_destination = Double.parseDouble(lat_destination);
-        int    new_timestamp_line2 = Integer.parseInt((timestamp_destination));
+        double new_lng_line2 = Double.parseDouble(lngDestination);
+        double new_lat_destination = Double.parseDouble(latDestination);
+        int    new_timestamp_line2 = Integer.parseInt((timestampDestination));
 
         double delta_time_seconds = (new_timestamp_line2 - new_timestamp);
         delta_time_hours = delta_time_seconds / 3600;
@@ -49,14 +43,17 @@ public class Segment extends Point {
         return U;
     }
 
+  //  public double calculate_speed(){
+   //     U = (distance / delta_time_hours);
+    //    return U;
+  //  }
     public void validatePoint(String id_ride3, String lat_line3, String lng_line3, String timestamp_line3) {
 
-            lat_destination = lat_line3;
-            lng_destination = lng_line3;
-            timestamp_destination = timestamp_line3;
+            latDestination = lat_line3;
+            lngDestination = lng_line3;
+            timestampDestination = timestamp_line3;
 
     }
-
     public void fare_rules(ArrayList<Double> fare, ArrayList<Double> id_ride_final, int i) {
 
         double fare_amount = 0.0;

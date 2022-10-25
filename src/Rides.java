@@ -1,6 +1,6 @@
 import java.text.DecimalFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
+
 
 public class Rides {
 
@@ -10,27 +10,23 @@ public class Rides {
     private double fare_estimate;
     public Rides (){
 
-        this.fare_estimate = fare_estimate;
-
     }
 
     public String prepare_result (ArrayList<Double> fare, ArrayList<Double> id_ride_final, int i) {
 
          int  n = 0, m=0;
          double  cont =1.0;
-        String result = "0";
+         String result = "0";
 
          System.out.println("id_ride | fare_estimate");
 
         while (cont <= id_ride_final.get(i-1)) {
 
-          fare_estimate = 0;
+          fare_estimate = 1.30;
           while (id_ride_final.get(m) == cont && m<(i-1)) {
                   fare_estimate = fare_estimate + fare.get(m);
                   m++;
           }
-
-          fare_estimate = (fare_estimate + 1.30);
 
           if (fare_estimate < 3.47) {
              fare_estimate = 3.47;

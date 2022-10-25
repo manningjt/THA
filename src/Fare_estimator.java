@@ -1,5 +1,4 @@
 import java.io.*;
-import java.text.DecimalFormat;
 import java.util.ArrayList;
 public class Fare_estimator {
 
@@ -7,7 +6,7 @@ public class Fare_estimator {
 
         String lat, lng, lat_line2, lng_line2, id_ride, timestamp, timestamp_line2, id_ride2;
         String result;
-        int i = 0, cont;
+        int i=0, cont;
         double U;
 
         ArrayList<Double> fare = new ArrayList<>();
@@ -27,7 +26,7 @@ public class Fare_estimator {
                 lng = fields_line1[2];
                 timestamp = fields_line1[3];
                 line = buffer_read.readLine();
-                Point pointData = new Point(lat, lng, id_ride, timestamp);
+
                 if (line == null) {
                     break;
                 }
@@ -36,8 +35,8 @@ public class Fare_estimator {
                 lat_line2 = fields_line2[1];
                 lng_line2 = fields_line2[2];
                 timestamp_line2 = fields_line2[3];
-
-                Segment destinationData = new Segment(lat, lng, id_ride, timestamp, lat_line2, lng_line2, id_ride2, timestamp_line2);
+                Point pointData = new Point(lat, lng, id_ride, timestamp, lat_line2, lng_line2, id_ride2, timestamp_line2);
+                Segment destinationData = new Segment(lat, lng, id_ride, timestamp,lat_line2,lng_line2, id_ride2,timestamp_line2);
                 U = destinationData.calculate_speed();
                 //if the speed is bigger than 100KM/h
                 while (U > 100) {
@@ -50,7 +49,7 @@ public class Fare_estimator {
                     destinationData.validatePoint(id_ride3, lat_line3, lng_line3, timestamp_line3);
                     U = destinationData.calculate_speed();
                 }
-                destinationData.fare_rules(fare, id_ride_final, i);
+                destinationData.fare_rules(fare, id_ride_final,i);
                 calculate = new Rides();
                 i++;
             }
@@ -59,7 +58,7 @@ public class Fare_estimator {
             e.printStackTrace();
         }
         finally {
-                    result = (calculate.prepare_result(fare, id_ride_final, i));
+                    result = calculate.prepare_result(fare, id_ride_final,i);
                     if (buffer_read != null) {
                         try {
                             buffer_read.close();
