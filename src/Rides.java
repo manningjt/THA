@@ -23,9 +23,12 @@ public class Rides {
         while (cont <= id_ride_final.get(i-1)) {
 
           fare_estimate = 1.30;
-          while (id_ride_final.get(m) == cont && m<(i-1)) {
+          while (id_ride_final.get(m) == cont && m<=(id_ride_final.size())) {
                   fare_estimate = fare_estimate + fare.get(m);
                   m++;
+                  if (m==id_ride_final.size()){
+                      break;
+                  }
           }
 
           if (fare_estimate < 3.47) {

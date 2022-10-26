@@ -23,7 +23,7 @@ public class Segment extends Point {
 
 
     }
-    public double calculate_speed() {
+    public void calculate_distance() {
 
         double new_lng_line2 = Double.parseDouble(lngDestination);
         double new_lat_destination = Double.parseDouble(latDestination);
@@ -39,14 +39,12 @@ public class Segment extends Point {
         double c = 2 * Math.asin((Math.sqrt(a)));
         int EARTH_RADIUS = 6371;
         distance = (EARTH_RADIUS * c);
-        U = (distance / delta_time_hours);
-        return U;
     }
 
-  //  public double calculate_speed(){
-   //     U = (distance / delta_time_hours);
-    //    return U;
-  //  }
+    public double calculate_speed(){
+        U = (distance / delta_time_hours);
+       return U;
+    }
     public void validatePoint(String id_ride3, String lat_line3, String lng_line3, String timestamp_line3) {
 
             latDestination = lat_line3;

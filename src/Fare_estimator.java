@@ -37,6 +37,7 @@ public class Fare_estimator {
                 timestamp_line2 = fields_line2[3];
                 Point pointData = new Point(lat, lng, id_ride, timestamp, lat_line2, lng_line2, id_ride2, timestamp_line2);
                 Segment destinationData = new Segment(lat, lng, id_ride, timestamp,lat_line2,lng_line2, id_ride2,timestamp_line2);
+                destinationData.calculate_distance();
                 U = destinationData.calculate_speed();
                 //if the speed is bigger than 100KM/h
                 while (U > 100) {
@@ -47,6 +48,7 @@ public class Fare_estimator {
                     String lng_line3 = fields_line4[2];
                     String timestamp_line3 = fields_line4[3];
                     destinationData.validatePoint(id_ride3, lat_line3, lng_line3, timestamp_line3);
+                    destinationData.calculate_distance();
                     U = destinationData.calculate_speed();
                 }
                 destinationData.fare_rules(fare, id_ride_final,i);
