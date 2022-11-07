@@ -6,10 +6,10 @@ public class Fare_estimator {
 
     public static void main(String[] args) {
 
-        String lat, lng, lat_line2, lng_line2, id_ride, timestamp, timestamp_line2, id_ride2;
+
         String result;
         int i=0, cont;
-        double U;
+        double U,distance,fare_amount =0;
         ArrayList<Double> fare = new ArrayList<>();
         ArrayList<Double> id_ride_final = new ArrayList<>();
 
@@ -23,45 +23,51 @@ public class Fare_estimator {
             while (line != null) {
 
                 String[] fields_line1 = line.split(",");
-                id_ride = fields_line1[0];
-                lat = fields_line1[1];
-                lng = fields_line1[2];
-                timestamp = fields_line1[3];
+                double id_ride = Double.parseDouble(fields_line1[0]);
+                double latitude = Double.parseDouble(fields_line1[1]);
+                double longitude = Double.parseDouble(fields_line1[2]);
+                long   timestamp = Long.parseLong(fields_line1[3]);
+                Point origin = new Point(latitude,longitude,timestamp);
+                origin.getLatitude();
+                origin.getLongitude();
+                origin.getTimestamp();
                 line = buffer_read.readLine();
 
                 if (line == null) {
                     break;
                 }
                 String[] fields_line2 = line.split(",");
-                id_ride2 = fields_line2[0];
-                lat_line2 = fields_line2[1];
-                lng_line2 = fields_line2[2];
-                timestamp_line2 = fields_line2[3];
-                Point pointData = new Point(lat,lng,lat_line2, lng_line2);
-                List<Point> pointOrigin = new ArrayList<>();
-                pointOrigin.add(pointData);
-                List<Point> pointDestination = new ArrayList<>();
-                pointDestination.add(pointData);
-                Segment pointsData = new Segment(pointOrigin,id_ride,timestamp,timestamp_line2,fare);
-                List<Segment> segments = new ArrayList<>();
-                segments.add(pointsData);
-                Segment calculateData = new Segment(pointOrigin,id_ride,timestamp,timestamp_line2,fare);
-                calculateData.calculate_distance();
-                U = calculateData.calculate_speed();
+                id_ride = Double.parseDouble(fields_line2[0]);
+                latitude = Double.parseDouble(fields_line2[1]);
+                longitude = Double.parseDouble(fields_line2[2]);
+                timestamp = Long.parseLong(fields_line2[3]);
+                Point destination = new Point(latitude,longitude,timestamp);
+                destination.getLatitude();
+                destination.getLongitude();
+                destination.getTimestamp();
+                Segment calculateData = new Segment(destination,origin,timestamp,fare_amount);
+                distance = calculateData.calculate_distance();
+                U=calculateData.calculate_speed();
                 //if the speed is bigger than 100KM/h
-                while (U > 100) {
+                while (calculateData.isValid() == true) {
                     line = buffer_read.readLine();
                     String[] fields_line4 = line.split(",");
-                    String id_ride3 = fields_line4[0];
-                    String lat_line3 = fields_line4[1];
-                    String lng_line3 = fields_line4[2];
-                    String timestamp_line3 = fields_line4[3];
-                    calculateData.validatePoint( lat_line3,lng_line3,timestamp_line3);
-                    calculateData.calculate_distance();
-                    U = calculateData.calculate_speed();
+                    latitude = Double.parseDouble(fields_line4[1]);
+                    longitude = Double.parseDouble(fields_line4[2]);
+                    timestamp = Long.parseLong(fields_line4[3]);
+                    destination = new Point(latitude,longitude,timestamp);
+                    destination.getLatitude();
+                    destination.getLongitude();
+                    destination.getTimestamp();
+                    calculateData = new Segment(destination,origin,timestamp,fare_amount);
+                    distance=calculateData.calculate_distance();
+                    U=calculateData.calculate_speed();
+                    calculateData.isValid();
                 }
-                calculateData.fare_rules(id_ride_final,i);
-                ride = new Rides(segments);
+                fare_amount=calculateData.fare_rules(U,distance);
+                Segment segments = new Segment (destination,origin,timestamp,fare_amount);
+                ride = new Rides(segments,id_ride_final,fare);
+                ride.calculateFare(i,id_ride);
                 i++;
             }
 
@@ -69,9 +75,8 @@ public class Fare_estimator {
             e.printStackTrace();
         }
         finally {
-
-            assert ride != null;
-            result = ride.prepare_result(id_ride_final,i);
+            FileData total = new FileData(ride);
+            result = total.showResult(id_ride_final,fare,i);
             try {
                 buffer_read.close();
             } catch (IOException e) {

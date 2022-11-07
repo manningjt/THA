@@ -1,76 +1,56 @@
 import java.sql.Date;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
 
 public class Segment {
 
     private double U, distance, delta_time_hours;
+    private double VALID_SPEED_LIMIT_KMH = 100.0;
+    private Point destination;
+    private Point origin;
 
-    private List<Point> points;
-    private String id_ride;
-    private String timestamp;
-    private String timestamp_line2;
+    private double fare_amount;
+    private long timestamp;
 
-    ArrayList<Double> fare;
-    public Segment(List<Point> points, String id_ride, String timestamp, String timestamp_line2,ArrayList<Double> fare) {
-        this.points = points;
-        this.id_ride = id_ride;
+
+
+    public Segment(Point destination, Point origin, long timestamp,double fare_amount) {
+
+        this.destination = destination;
         this.timestamp = timestamp;
-        this.timestamp_line2 = timestamp_line2;
-        this.fare=fare;
+        this.origin=origin;
+        this.fare_amount=fare_amount;
 
     }
-
-    public List<Point> getPoints() {
-        return points;
+    public double getFare(){
+        return this.fare_amount;
     }
 
-    public void calculate_distance() {
-        int new_timestamp = Integer.parseInt(timestamp);
+    public double calculate_distance() {
 
+        double delta_time_seconds = (destination.getTimestamp() - origin.getTimestamp());
+        delta_time_hours = delta_time_seconds / 3600;
+        double delta_latitude = Math.toRadians(destination.getLatitude() - origin.getLatitude());
+        double delta_longitude = Math.toRadians(destination.getLongitude() - origin.getLongitude());
+        double a = Math.sin(delta_latitude / 2) * Math.sin(delta_latitude / 2) +
+                Math.cos(Math.toRadians(origin.getLatitude())) * Math.cos(Math.toRadians(destination.getLatitude())) *
+                        Math.sin(delta_longitude / 2) * Math.sin(delta_longitude / 2);
+        double c = 2 * Math.asin((Math.sqrt(a)));
+        int EARTH_RADIUS = 6371;
+        distance = (EARTH_RADIUS * c);
+        return distance;
 
-        for (Point pnt : points) {
-            String latOrigin = pnt.lat;
-            String lngOrigin = pnt.lng;
-            String latDestination = pnt.lat_line2;
-            String lngDestination = pnt.lng_line2;
-            double new_lat = Double.parseDouble(latOrigin);
-            double new_lng = Double.parseDouble(lngOrigin);
-            double new_lat_destination = Double.parseDouble(latDestination);
-            double new_lng_line2 = Double.parseDouble(lngDestination);
-            int new_timestamp_line2 = Integer.parseInt((timestamp_line2));
-            double delta_time_seconds = (new_timestamp_line2 - new_timestamp);
-            delta_time_hours = delta_time_seconds / 3600;
-            double delta_latitude = Math.toRadians(new_lat_destination - new_lat);
-            double delta_longitude = Math.toRadians(new_lng_line2 - new_lng);
-            double a = Math.sin(delta_latitude / 2) * Math.sin(delta_latitude / 2) +
-                    Math.cos(Math.toRadians(new_lat)) * Math.cos(Math.toRadians(new_lat_destination)) *
-                            Math.sin(delta_longitude / 2) * Math.sin(delta_longitude / 2);
-            double c = 2 * Math.asin((Math.sqrt(a)));
-            int EARTH_RADIUS = 6371;
-            distance = (EARTH_RADIUS * c);
-        }
     }
 
     public double calculate_speed() {
         U = (distance / delta_time_hours);
         return U;
     }
-    public void validatePoint(String lat_line3, String lng_line3, String timestamp_line3){
-        for (Point pnt : points) {
-            pnt.lat_line2 =lat_line3;
-            pnt.lng_line2 = lng_line3;
-        }
-        timestamp_line2 = timestamp_line3;
+    public boolean isValid (){
 
+        return calculate_speed() > VALID_SPEED_LIMIT_KMH;
     }
-    public void fare_rules(ArrayList<Double> id_ride_final, int i) {
+    public double fare_rules( double U, double distance) {
 
-        float new_id_ride = Float.parseFloat(id_ride);
-        int new_timestamp = Integer.parseInt(timestamp);
-        double fare_amount = 0.0;
         // when the speed is less than 10KM
         if (U <= 10) {
             fare_amount = 11.90 * delta_time_hours;
@@ -80,13 +60,9 @@ public class Segment {
             if (fare_amount > 1000.0) {
                 fare_amount = 0.0;
             }
-            id_ride_final.add(i, (double) new_id_ride);
-            fare.add(i, fare_amount);
         }
-
-        long time = Long.parseLong(String.valueOf(new_timestamp));
         //convert time seconds to microseconds
-        Date date_and_hour = new Date( time * 1000 );
+        Date date_and_hour = new Date( timestamp * 1000 );
         SimpleDateFormat sdf = new SimpleDateFormat("HHmmss");
         String Hour = sdf.format(date_and_hour);
         String hour1 = "000000";
@@ -97,16 +73,13 @@ public class Segment {
         if (U > 10 && Hour.compareTo(hour1) > 0 && Hour.compareTo(hour2) < 0) {
 
             fare_amount = (1.30 * distance) ;
-            id_ride_final.add(i, (double) new_id_ride);
-            fare.add(i, fare_amount);
         }
         // when the speed is bigger than 10KM and the movement of the vehicle is between 5AM  and 00 hour
         if (U > 10 && Hour.compareTo(hour2) > 0 && Hour.compareTo(hour3) < 0) {
 
             fare_amount = (0.74 * distance) ;
-            id_ride_final.add(i, (double) new_id_ride);
-            fare.add(i, fare_amount);
         }
+        return fare_amount;
     }
 
 }

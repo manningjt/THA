@@ -1,21 +1,30 @@
-public class Point {
+public class Point{
 
-    public String lat,
-            lng,
-            lat_line2,
-            lng_line2;
+    private double longitude;
+    private double latitude;
+    private long timestamp;
 
+    public Point(double latitude, double longitude, long timestamp){
 
-    public Point (String lat,String lng,String lat_line2,String lng_line2){
-
-        this.lat = lat;
-        this.lng = lng;
-        this.lat_line2 =lat_line2;
-        this.lng_line2= lng_line2;
-
+        this.latitude = latitude;
+        this.longitude = longitude;
+        this.timestamp =timestamp;
     }
 
+    public double getLatitude(){
+        return this.latitude;
+    }
 
+    public double getLongitude(){
+        return this.longitude;
+    }
 
+    public long getTimestamp(){
+        return this.timestamp;
+    }
 }
+
+
+
+
 
